@@ -19,7 +19,6 @@ func HandlerPage(url string, resultChan chan SpiderResult) {
 		sr, _ = ExtractPage(page)
 		if err == nil {
 			sr.Url = url
-			sr.PageType = 7
 			sr.CrawlerSource = "weixin_spdier"
 			log.Println("page extract succ ", sr)
 		} else {
