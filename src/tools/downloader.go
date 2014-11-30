@@ -27,7 +27,7 @@ func Download(pageurl string) (rep string, err error) {
 			rep = ""
 		}
 	}()
-	proxy, _ := url.Parse("")
+	proxy, _ := url.Parse("http://proxy_gateway.yqing.net:43812")
 	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(proxy),
@@ -66,4 +66,16 @@ func Download(pageurl string) (rep string, err error) {
 	} else {
 		return "", errors.New("download error")
 	}
+}
+
+func DownloadRetry(pageurl string) (rep string, err error) {
+	for i := 0; i < 5; i++ {
+		html, err := Download(pageurl)
+		if err == nil && len(html) > 5000 {
+			return html, err
+		} else {
+			log.Println("download failed, begin to retry ", pageurl)
+		}
+	}
+	return "", err
 }

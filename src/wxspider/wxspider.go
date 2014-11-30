@@ -12,13 +12,14 @@ import (
 
 func HandlerPage(url string, resultChan chan SpiderResult) {
 	var sr SpiderResult
-	page, err := Download(url)
+	page, err := DownloadRetry(url)
 	log.Println("downlaod ret", len(page), err)
 	if err == nil {
 		log.Println("download succ, len=", len(page))
 		sr, _ = ExtractPage(page)
 		if err == nil {
 			sr.Url = url
+			sr.PageType = 7
 			sr.CrawlerSource = "weixin_spdier"
 			log.Println("page extract succ ", sr)
 		} else {
@@ -34,15 +35,18 @@ func HandlerUrl(keyword string, resultChan chan []SpiderResult) {
 	var sprs []SpiderResult
 
 	indexurl := "http://weixin.sogou.com/weixin?query=" + keyword + "&_asf=www.sogou.com&_ast&ie=utf8&type=2"
-	page, err := Download(indexurl)
+	page, err := DownloadRetry(indexurl)
 	if err != nil {
-		panic("download err")
+		log.Println("download from sogou fail")
+		resultChan <- sprs
+		return
 	}
 	log.Println("download succ, len=", len(page))
 
 	urls, err := ExtractUrl(page)
 	if err != nil {
-		panic("extract err")
+		log.Println("extract from sogou fail")
+		resultChan <- sprs
 		return
 	}
 	log.Println("urls extract succ, len=", len(urls))
@@ -80,8 +84,12 @@ func Index(response http.ResponseWriter, request *http.Request) {
 	result.Status = true
 	for i := 0; i < len(keywords); i++ {
 		items := <-channel
-		for _, item := range items {
-			result.Data = append(result.Data, item)
+		if len(items) == 0 {
+			panic("download or extract err")
+		} else {
+			for _, item := range items {
+				result.Data = append(result.Data, item)
+			}
 		}
 	}
 
