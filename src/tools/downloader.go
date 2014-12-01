@@ -27,7 +27,9 @@ func Download(pageurl string) (rep string, err error) {
 			rep = ""
 		}
 	}()
-	proxy, _ := url.Parse("http://proxy_gateway.yqing.net:43812")
+
+    // add your proxy here
+	proxy, _ := url.Parse("")
 	client := &http.Client{
 		Transport: &http.Transport{
 			Proxy: http.ProxyURL(proxy),
